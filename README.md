@@ -98,7 +98,7 @@ Despues reinicia OpenCode.
 ## Estructura
 
 - `plugins/opencode-ssh.ts`
-- `plugins/ssh/*`
+- `plugins/opencode-ssh/*`
 - `commands/*.md`
 - `scripts/install.mjs`
 - `scripts/uninstall.mjs`

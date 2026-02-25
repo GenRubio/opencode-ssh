@@ -25,9 +25,9 @@ Implementado en esta version:
 - `package.json`
 - `tsconfig.json`
 - `plugins/opencode-ssh.ts`
-- `plugins/ssh/types.ts`
-- `plugins/ssh/store.ts`
-- `plugins/ssh/client.ts`
+- `plugins/opencode-ssh/types.ts`
+- `plugins/opencode-ssh/store.ts`
+- `plugins/opencode-ssh/client.ts`
 - `commands/ssh-new.md`
 - `commands/ssh-list.md`
 - `commands/ssh-use.md`

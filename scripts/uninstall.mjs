@@ -8,7 +8,7 @@ const manifestPath = path.join(configDir, `${pluginName}.manifest.json`)
 
 const fallbackPaths = [
   path.join(configDir, "plugins", "opencode-ssh.ts"),
-  path.join(configDir, "plugins", "ssh"),
+  path.join(configDir, "plugins", "opencode-ssh"),
   path.join(configDir, "commands", "ssh-new.md"),
   path.join(configDir, "commands", "ssh-list.md"),
   path.join(configDir, "commands", "ssh-use.md"),

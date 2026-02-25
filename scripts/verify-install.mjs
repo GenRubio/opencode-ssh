@@ -6,9 +6,9 @@ const configDir = process.env.OPENCODE_CONFIG_DIR || path.join(os.homedir(), ".c
 
 const requiredPaths = [
   path.join(configDir, "plugins", "opencode-ssh.ts"),
-  path.join(configDir, "plugins", "ssh", "client.ts"),
-  path.join(configDir, "plugins", "ssh", "store.ts"),
-  path.join(configDir, "plugins", "ssh", "types.ts"),
+  path.join(configDir, "plugins", "opencode-ssh", "client.ts"),
+  path.join(configDir, "plugins", "opencode-ssh", "store.ts"),
+  path.join(configDir, "plugins", "opencode-ssh", "types.ts"),
   path.join(configDir, "commands", "ssh-new.md"),
   path.join(configDir, "commands", "ssh-list.md"),
   path.join(configDir, "commands", "ssh-use.md"),
