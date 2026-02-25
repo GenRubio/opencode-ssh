@@ -23,14 +23,14 @@ function nowIso(): string {
 
 function ensureValidAlias(alias: string): void {
   if (!alias || !ALIAS_PATTERN.test(alias)) {
-    throw new Error("Alias invalido. Usa letras, numeros, guion y guion bajo.")
+    throw new Error("Invalid alias. Use letters, numbers, hyphens and underscores.")
   }
 }
 
 function normalizePort(port?: number): number {
   if (port === undefined) return 22
   if (!Number.isInteger(port) || port < 1 || port > 65535) {
-    throw new Error("Puerto invalido. Debe estar entre 1 y 65535.")
+    throw new Error("Invalid port. Must be between 1 and 65535.")
   }
   return port
 }
@@ -186,12 +186,12 @@ export class ServerStore {
 
     ensureValidAlias(alias)
 
-    if (!host) throw new Error("Host requerido.")
-    if (!user) throw new Error("Usuario requerido.")
+    if (!host) throw new Error("Host is required.")
+    if (!user) throw new Error("User is required.")
 
     const existing = data.servers.find((server) => sameAlias(server.alias, alias))
     if (existing) {
-      throw new Error(`El alias '${alias}' ya existe.`)
+      throw new Error(`Alias '${alias}' already exists.`)
     }
 
     const port = normalizePort(input.port)
@@ -218,7 +218,7 @@ export class ServerStore {
     const data = await this.getData()
     const existing = data.servers.find((server) => sameAlias(server.alias, alias))
     if (!existing) {
-      throw new Error(`Alias no encontrado: ${alias}`)
+      throw new Error(`Alias not found: ${alias}`)
     }
 
     const timestamp = nowIso()
@@ -249,7 +249,7 @@ export class ServerStore {
     data.servers = data.servers.filter((server) => !sameAlias(server.alias, alias))
 
     if (data.servers.length === previousLength) {
-      throw new Error(`Alias no encontrado: ${alias}`)
+      throw new Error(`Alias not found: ${alias}`)
     }
 
     if (data.activeAlias && sameAlias(data.activeAlias, alias)) {
@@ -263,7 +263,7 @@ export class ServerStore {
     const data = await this.getData()
     const existing = data.servers.find((server) => sameAlias(server.alias, alias))
     if (!existing) {
-      throw new Error(`Alias no encontrado: ${alias}`)
+      throw new Error(`Alias not found: ${alias}`)
     }
 
     existing.auth = auth

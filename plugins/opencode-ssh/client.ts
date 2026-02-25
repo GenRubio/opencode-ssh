@@ -55,7 +55,7 @@ function expandHome(inputPath: string): string {
 function requireEnv(name: string): string {
   const value = process.env[name]
   if (!value) {
-    throw new Error(`Variable de entorno no definida: ${name}`)
+    throw new Error(`Environment variable not defined: ${name}`)
   }
   return value
 }
@@ -101,7 +101,7 @@ async function openConnection(profile: ServerProfile, connectTimeoutMs: number):
       if (settled) return
       settled = true
       client.end()
-      reject(new Error("Timeout conectando por SSH."))
+      reject(new Error("SSH connection timed out."))
     }, connectTimeoutMs)
 
     const cleanup = () => {
@@ -163,7 +163,7 @@ export async function execOnServer(
       const timeout = setTimeout(() => {
         settle(() => {
           client.end()
-          reject(new Error(`Comando remoto excedio el timeout de ${timeoutMs}ms.`))
+          reject(new Error(`Remote command exceeded timeout of ${timeoutMs}ms.`))
         })
       }, timeoutMs)
 
@@ -254,7 +254,7 @@ export async function openShellSession(
         const closeSession = async (): Promise<void> => {
           if (closed) return
           closed = true
-          failActiveRun(new Error("Sesion shell cerrada."))
+          failActiveRun(new Error("Shell session closed."))
 
           await new Promise<void>((closeResolve) => {
             const timer = setTimeout(() => closeResolve(), 1000)
@@ -268,10 +268,10 @@ export async function openShellSession(
 
         const runCommand = async (command: string, timeoutMs: number): Promise<ShellRunResult> => {
           if (closed) {
-            throw new Error("Sesion shell cerrada.")
+            throw new Error("Shell session closed.")
           }
           if (activeRun) {
-            throw new Error("La sesion shell esta ocupada ejecutando otro comando.")
+            throw new Error("The shell session is busy executing another command.")
           }
 
           return await new Promise<ShellRunResult>((resolveRun, rejectRun) => {
@@ -282,7 +282,7 @@ export async function openShellSession(
               if (!activeRun || activeRun.marker !== marker) return
               const rejectTimeout = activeRun.reject
               activeRun = null
-              rejectTimeout(new Error(`Comando shell excedio el timeout de ${timeoutMs}ms.`))
+              rejectTimeout(new Error(`Shell command exceeded timeout of ${timeoutMs}ms.`))
               await closeSession()
             }, timeoutMs)
 
@@ -346,7 +346,7 @@ export async function openShellSession(
 
         stream.on("close", () => {
           closed = true
-          failActiveRun(new Error("La conexion shell se cerro."))
+          failActiveRun(new Error("The shell connection was closed."))
         })
 
         stream.on("error", (streamError: Error) => {

@@ -1,6 +1,6 @@
 ---
-description: Ver servidor SSH activo
+description: Show the active SSH server
 ---
-Muestra el servidor activo con la herramienta `ssh_current`.
+Show the active server using the `ssh_current` tool.
 
-Llama `ssh_current` exactamente una vez.
+Call `ssh_current` exactly once.

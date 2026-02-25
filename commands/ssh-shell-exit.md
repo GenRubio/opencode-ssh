@@ -1,15 +1,15 @@
 ---
-description: Cerrar sesion shell interactiva SSH
+description: Close the interactive SSH shell session
 ---
-Cierra la sesion shell interactiva usando `ssh_shell_exit`.
+Close the interactive shell session using `ssh_shell_exit`.
 
-Argumentos de entrada: `$ARGUMENTS`
+Input arguments: `$ARGUMENTS`
 
-Reglas:
-1) Si hay argumentos, toma el primer token como `alias`.
-2) Si no hay argumentos, llama sin `alias`.
-3) Llama `ssh_shell_exit` exactamente una vez.
+Rules:
+1) If there are arguments, take the first token as `alias`.
+2) If there are no arguments, call without `alias`.
+3) Call `ssh_shell_exit` exactly once.
 
-Ejemplos:
+Examples:
 - `/ssh-shell-exit`
 - `/ssh-shell-exit bm-old`

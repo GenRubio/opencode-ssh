@@ -1,16 +1,16 @@
 ---
-description: Seleccionar servidor SSH activo
+description: Select the active SSH server
 ---
-Selecciona un servidor activo usando `ssh_use`.
+Select an active server using `ssh_use`.
 
-Argumentos de entrada: `$ARGUMENTS`
+Input arguments: `$ARGUMENTS`
 
-Reglas:
-1) El primer argumento debe ser el alias.
-2) Si tambien aparece `--no-test`, usa `testConnection=false`; en otro caso `true`.
-3) Llama `ssh_use` exactamente una vez.
-4) Si falta alias, explica el formato correcto y da un ejemplo.
+Rules:
+1) The first argument must be the alias.
+2) If `--no-test` also appears, use `testConnection=false`; otherwise `true`.
+3) Call `ssh_use` exactly once.
+4) If the alias is missing, explain the correct format and give an example.
 
-Ejemplos:
+Examples:
 - `/ssh-use prod-api`
 - `/ssh-use staging-web --no-test`

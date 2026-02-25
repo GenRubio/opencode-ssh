@@ -32,13 +32,13 @@ function asBoolean(value: boolean | undefined, fallback: boolean): boolean {
 
 function truncateText(text: string, maxLength: number): string {
   if (text.length <= maxLength) return text
-  const suffix = `\n... output truncado (${text.length - maxLength} caracteres omitidos)`
+  const suffix = `\n... output truncated (${text.length - maxLength} characters omitted)`
   return `${text.slice(0, maxLength)}${suffix}`
 }
 
 function keepTail(text: string, maxLength: number): string {
   if (text.length <= maxLength) return text
-  const prefix = `... salida parcial truncada (${text.length - maxLength} caracteres omitidos)\n`
+  const prefix = `... partial output truncated (${text.length - maxLength} characters omitted)\n`
   return `${prefix}${text.slice(-maxLength)}`
 }
 
@@ -69,16 +69,16 @@ function serverAuthLabel(server: ServerProfile): string {
 
 function formatServerList(servers: ServerProfile[], activeAlias: string | null): string {
   if (servers.length === 0) {
-    return "No hay servidores registrados. Usa ssh_new para agregar uno."
+    return "No registered servers. Use ssh_new to add one."
   }
 
   const rows = servers.map((server) => {
     const isActive = activeAlias && server.alias.toLowerCase() === activeAlias.toLowerCase()
-    const activeTag = isActive ? " [activo]" : ""
+    const activeTag = isActive ? " [active]" : ""
     return `- ${server.alias}${activeTag}\n  target: ${serverRef(server)}\n  auth: ${serverAuthLabel(server)}`
   })
 
-  return `Servidores registrados (${servers.length}):\n${rows.join("\n")}`
+  return `Registered servers (${servers.length}):\n${rows.join("\n")}`
 }
 
 function buildAuthFromArgs(input: {
@@ -89,7 +89,7 @@ function buildAuthFromArgs(input: {
 }): ServerAuth {
   if (input.authType === "key") {
     if (!input.privateKeyPath) {
-      throw new Error("Para authType=key debes indicar privateKeyPath.")
+      throw new Error("For authType=key you must provide privateKeyPath.")
     }
 
     return {
@@ -100,7 +100,7 @@ function buildAuthFromArgs(input: {
   }
 
   if (!input.passwordEnvVar) {
-    throw new Error("Para authType=password debes indicar passwordEnvVar.")
+    throw new Error("For authType=password you must provide passwordEnvVar.")
   }
 
   return {
@@ -114,12 +114,12 @@ function shellSessionKey(sessionID: string, alias: string): string {
 }
 
 /**
- * Envia un comando a una sesion tmux para que sea visible en la consola abierta.
- * Fire-and-forget: no espera resultado, no lanza error si falla.
- * Se ejecuta en paralelo al ssh_exec/ssh_shell normal.
+ * Sends a command to a tmux session so it is visible in the open console.
+ * Fire-and-forget: does not wait for result, does not throw on failure.
+ * Runs in parallel with the normal ssh_exec/ssh_shell call.
  */
 function sendToTmux(server: ServerProfile, sessionName: string, command: string): void {
-  // Escapamos el comando para tmux send-keys: las comillas simples se duplican
+  // Escape the command for tmux send-keys: single quotes are doubled
   const escaped = command.replace(/'/g, `'\\''`)
   const tmuxCmd = `tmux send-keys -t ${sessionName} '${escaped}' Enter`
   execOnServer(server, tmuxCmd, { timeoutMs: 5000 }).catch(() => undefined)
@@ -167,15 +167,15 @@ function normalizeTmuxSessionName(input?: string): string {
   const value = (input ?? "opencode-live").trim()
   if (!value) return "opencode-live"
   if (!TMUX_SESSION_PATTERN.test(value)) {
-    throw new Error("sessionName invalido. Usa letras, numeros, guion y guion bajo.")
+    throw new Error("Invalid sessionName. Use letters, numbers, hyphens and underscores.")
   }
   return value
 }
 
 type TerminalLaunchOptions = {
-  /** Comando SSH a ejecutar en la terminal */
+  /** SSH command to execute in the terminal */
   command: string
-  /** Variables de entorno extra a inyectar en la terminal nueva */
+  /** Extra environment variables to inject into the new terminal */
   env?: Record<string, string>
 }
 
@@ -204,8 +204,8 @@ function buildAttachCommand(server: ServerProfile, sessionName: string): string 
     return `${sshBase}${keyFlag} ${target} ${tmuxCmd}`
   }
 
-  // auth=password: en Linux/macOS usamos sshpass -e (lee $SSHPASS)
-  // En Windows no hay sshpass nativo; usamos expect o directamente ssh (pedirá password si no hay otra opción)
+  // auth=password: on Linux/macOS we use sshpass -e (reads $SSHPASS)
+  // On Windows there is no native sshpass; we use expect or plain ssh (will prompt for password if no other option)
   if (process.platform !== "win32") {
     return `sshpass -e ${sshBase} ${target} ${tmuxCmd}`
   }
@@ -232,10 +232,10 @@ function isAvailable(exe: string): Promise<boolean> {
 }
 
 async function openDetachedTerminalWindows(opts: TerminalLaunchOptions): Promise<void> {
-  // Usamos wscript.exe + VBScript. wscript.Shell.Run usa ShellExecute
-  // internamente y puede crear ventanas visibles desde Electron/GUI.
-  // Las variables de entorno se inyectan en el entorno del proceso wscript
-  // que luego las hereda PowerShell.
+  // We use wscript.exe + VBScript. wscript.Shell.Run uses ShellExecute
+  // internally and can create visible windows from Electron/GUI.
+  // Environment variables are injected into the wscript process environment
+  // which PowerShell then inherits.
   const vbsPath = join(tmpdir(), `opencode-ssh-${Date.now()}.vbs`)
   const escaped = opts.command.replace(/"/g, '""')
 
@@ -244,7 +244,7 @@ async function openDetachedTerminalWindows(opts: TerminalLaunchOptions): Promise
     ? `wt.exe new-tab powershell.exe -NoExit -Command "${escaped}"`
     : `powershell.exe -NoExit -Command "${escaped}"`
 
-  // Inyectar env vars via WScript.Shell.Environment antes de ejecutar
+  // Inject env vars via WScript.Shell.Environment before executing
   const envLines = Object.entries(opts.env ?? {}).map(
     ([k, v]) => `sh.Environment("Process")("${k}") = "${v.replace(/"/g, '""')}"`,
   )
@@ -271,13 +271,13 @@ async function openDetachedTerminalWindows(opts: TerminalLaunchOptions): Promise
 }
 
 async function openDetachedTerminalMac(opts: TerminalLaunchOptions): Promise<void> {
-  // En macOS exportamos las env vars como prefijo del comando shell
+  // On macOS we export env vars as a prefix to the shell command
   const envPrefix = Object.entries(opts.env ?? {})
     .map(([k, v]) => `export ${k}=${JSON.stringify(v)}`)
     .join("; ")
   const fullCommand = envPrefix ? `${envPrefix}; ${opts.command}` : opts.command
 
-  // Intentamos iTerm2 primero (muy común entre devs), luego Terminal.app
+  // Try iTerm2 first (very common among devs), then Terminal.app
   const hasIterm = await new Promise<boolean>((resolve) => {
     const child = spawn(
       "osascript",
@@ -299,7 +299,7 @@ async function openDetachedTerminalMac(opts: TerminalLaunchOptions): Promise<voi
     return
   }
 
-  // Terminal.app (siempre disponible en macOS)
+  // Terminal.app (always available on macOS)
   spawnDetached("osascript", [
     "-e",
     `tell application "Terminal" to do script ${JSON.stringify(fullCommand)}`,
@@ -313,7 +313,7 @@ async function openDetachedTerminalLinux(opts: TerminalLaunchOptions): Promise<v
     .join("; ")
   const fullCommand = envPrefix ? `${envPrefix}; ${opts.command}` : opts.command
 
-  // Lista de emuladores de terminal comunes, en orden de preferencia
+  // List of common terminal emulators, in order of preference
   const candidates: Array<{ exe: string; args: string[] }> = [
     { exe: "gnome-terminal", args: ["--", "bash", "-lc", fullCommand] },
     { exe: "konsole",        args: ["--noclose", "-e", "bash", "-lc", fullCommand] },
@@ -332,7 +332,7 @@ async function openDetachedTerminalLinux(opts: TerminalLaunchOptions): Promise<v
     }
   }
 
-  throw new Error("No se encontro ningun emulador de terminal instalado (gnome-terminal, konsole, xterm, etc.).")
+  throw new Error("No terminal emulator found (gnome-terminal, konsole, xterm, etc.).")
 }
 
 async function openDetachedTerminal(opts: TerminalLaunchOptions): Promise<void> {
@@ -346,19 +346,19 @@ export const OpenCodeSSHPlugin: Plugin = async ({ client }) => {
     body: {
       service: "opencode-ssh",
       level: "info",
-      message: "Plugin SSH cargado",
+      message: "SSH plugin loaded",
     },
   })
 
   return {
     tool: {
       ssh_new: tool({
-        description: "Registra un nuevo servidor SSH en el perfil local",
+        description: "Register a new SSH server in the local profile",
         args: {
-          alias: tool.schema.string().min(1).describe("Alias unico del servidor"),
-          host: tool.schema.string().min(1).describe("Host o IP"),
+          alias: tool.schema.string().min(1).describe("Unique alias for the server"),
+          host: tool.schema.string().min(1).describe("Host or IP address"),
           port: tool.schema.number().int().min(1).max(65535).default(22),
-          user: tool.schema.string().min(1).describe("Usuario SSH"),
+          user: tool.schema.string().min(1).describe("SSH user"),
           authType: tool.schema.enum(["key", "password"]).default("key"),
           privateKeyPath: tool.schema.string().optional(),
           passphraseEnvVar: tool.schema.string().optional(),
@@ -382,41 +382,41 @@ export const OpenCodeSSHPlugin: Plugin = async ({ client }) => {
           const testConnection = asBoolean(args.testConnection, true)
           const useImmediately = asBoolean(args.useImmediately, true)
 
-          let testResult = "No ejecutada"
+          let testResult = "Not run"
           let testOk = true
 
           if (testConnection) {
             try {
               await testServerConnection(server)
-              testResult = "Conexion OK"
+              testResult = "Connection OK"
             } catch (error) {
               testOk = false
-              testResult = `Fallo de conexion: ${(error as Error).message}`
+              testResult = `Connection failed: ${(error as Error).message}`
             }
           }
 
-          let activeResult = "No actualizado"
+          let activeResult = "Not updated"
           if (useImmediately) {
             if (!testConnection || testOk) {
               await store.setActiveAlias(server.alias)
-              activeResult = `Activo: ${server.alias}`
+              activeResult = `Active: ${server.alias}`
             } else {
-              activeResult = "No activado por fallo de conexion"
+              activeResult = "Not activated due to connection failure"
             }
           }
 
           return [
-            `Servidor guardado: ${server.alias}`,
+            `Server saved: ${server.alias}`,
             `Target: ${serverRef(server)}`,
             `Auth: ${serverAuthLabel(server)}`,
             `Test: ${testResult}`,
-            `Estado activo: ${activeResult}`,
+            `Active status: ${activeResult}`,
           ].join("\n")
         },
       }),
 
       ssh_list: tool({
-        description: "Lista servidores SSH registrados",
+        description: "List registered SSH servers",
         args: {
           checkConnection: tool.schema.boolean().optional(),
         },
@@ -427,7 +427,7 @@ export const OpenCodeSSHPlugin: Plugin = async ({ client }) => {
           const lines: string[] = [formatServerList(servers, activeAlias)]
 
           if (servers.length > 0 && asBoolean(args.checkConnection, false)) {
-            lines.push("", "Estado de conectividad:")
+            lines.push("", "Connectivity status:")
 
             for (const server of servers) {
               try {
@@ -444,7 +444,7 @@ export const OpenCodeSSHPlugin: Plugin = async ({ client }) => {
       }),
 
       ssh_use: tool({
-        description: "Selecciona un servidor SSH como activo",
+        description: "Select an SSH server as active",
         args: {
           alias: tool.schema.string().min(1),
           testConnection: tool.schema.boolean().optional(),
@@ -452,7 +452,7 @@ export const OpenCodeSSHPlugin: Plugin = async ({ client }) => {
         async execute(args) {
           const server = await store.getServerByAlias(args.alias)
           if (!server) {
-            throw new Error(`Alias no encontrado: ${args.alias}`)
+            throw new Error(`Alias not found: ${args.alias}`)
           }
 
           const testConnection = asBoolean(args.testConnection, true)
@@ -463,33 +463,33 @@ export const OpenCodeSSHPlugin: Plugin = async ({ client }) => {
           const activeServer = await store.setActiveAlias(server.alias)
 
           return [
-            `Servidor activo actualizado: ${activeServer.alias}`,
+            `Active server updated: ${activeServer.alias}`,
             `Target: ${serverRef(activeServer)}`,
-            `Test conexion: ${testConnection ? "OK" : "omitido"}`,
+            `Connection test: ${testConnection ? "OK" : "skipped"}`,
           ].join("\n")
         },
       }),
 
       ssh_current: tool({
-        description: "Muestra el servidor SSH actualmente activo",
+        description: "Show the currently active SSH server",
         args: {},
         async execute() {
           const active = await store.getActiveServer()
           if (!active) {
-            return "No hay servidor activo. Usa ssh_use <alias>."
+            return "No active server. Use ssh_use <alias>."
           }
 
           return [
-            `Servidor activo: ${active.alias}`,
+            `Active server: ${active.alias}`,
             `Target: ${serverRef(active)}`,
             `Auth: ${serverAuthLabel(active)}`,
-            `Ultimo uso: ${active.lastUsedAt ?? "nunca"}`,
+            `Last used: ${active.lastUsedAt ?? "never"}`,
           ].join("\n")
         },
       }),
 
       ssh_console_open: tool({
-        description: "Abre una terminal local separada conectada por SSH al servidor activo",
+        description: "Open a separate local terminal connected via SSH to the active server",
         args: {
           alias: tool.schema.string().optional(),
           sessionName: tool.schema.string().optional(),
@@ -497,16 +497,16 @@ export const OpenCodeSSHPlugin: Plugin = async ({ client }) => {
         async execute(args) {
           const target = args.alias ? await store.getServerByAlias(args.alias) : await store.getActiveServer()
           if (!target) {
-            throw new Error(args.alias ? `Alias no encontrado: ${args.alias}` : "No hay servidor activo.")
+            throw new Error(args.alias ? `Alias not found: ${args.alias}` : "No active server.")
           }
 
           const sessionName = normalizeTmuxSessionName(args.sessionName)
           const command = buildAttachCommand(target, sessionName)
-          // Comando manual sin sshpass (para mostrar al usuario)
+          // Manual command without sshpass (to show to the user)
           const manualCommand = `ssh -t -p ${target.port} ${target.user}@${target.host} 'tmux new-session -A -s ${sessionName}'`
 
-          // Resolver password para inyectarla en la terminal nueva
-          // (la terminal nueva no hereda las env vars del proceso de OpenCode)
+          // Resolve password to inject into the new terminal
+          // (the new terminal does not inherit env vars from the OpenCode process)
           const password = resolveServerPassword(target)
           const env: Record<string, string> = {}
           if (password) env["SSHPASS"] = password
@@ -514,42 +514,42 @@ export const OpenCodeSSHPlugin: Plugin = async ({ client }) => {
           try {
             await openDetachedTerminal({ command, env })
             await store.touchServer(target.alias)
-            // Guardar la sesion tmux activa para que ssh_exec/ssh_shell
-            // puedan enviar comandos a ella y sean visibles en la consola
+            // Save the active tmux session so ssh_exec/ssh_shell
+            // can send commands to it and they are visible in the console
             await store.setActiveTmuxSession(target.alias, sessionName)
           } catch (error) {
             const message = error instanceof Error ? error.message : String(error)
             return [
-              "No se pudo abrir la terminal local automaticamente.",
+              "Could not open the local terminal automatically.",
               `Error: ${message}`,
-              "Comando manual (copiar y pegar):",
+              "Manual command (copy and paste):",
               manualCommand,
             ].join("\n")
           }
 
           return [
-            `Terminal abierta para ${target.alias} (${serverRef(target)}).`,
-            `Sesion tmux: ${sessionName}`,
-            "Los comandos que ejecute OpenCode aparecerán también en esta consola.",
-            "Si la ventana no aparece automaticamente, pega este comando en tu terminal local:",
+            `Terminal opened for ${target.alias} (${serverRef(target)}).`,
+            `Tmux session: ${sessionName}`,
+            "Commands run by OpenCode will also appear in this console.",
+            "If the window does not open automatically, paste this command in your local terminal:",
             manualCommand,
           ].join("\n")
         },
       }),
 
       ssh_exec: tool({
-        description: "Ejecuta un comando en el servidor SSH activo",
+        description: "Executes a command on the active SSH server",
         args: {
-          command: tool.schema.string().min(1).describe("Comando remoto a ejecutar"),
+          command: tool.schema.string().min(1).describe("Remote command to execute"),
           timeoutMs: tool.schema.number().int().min(1000).max(600000).optional(),
         },
         async execute(args, context) {
           const active = await store.getActiveServer()
           if (!active) {
-            throw new Error("No hay servidor activo. Usa ssh_use <alias>.")
+            throw new Error("No active server. Use ssh_use <alias>.")
           }
 
-          // Si hay consola tmux abierta, enviar el comando para que sea visible
+          // If a tmux console is open, send the command so it is visible there
           if (active.activeTmuxSession) {
             sendToTmux(active, active.activeTmuxSession, args.command)
           }
@@ -563,13 +563,13 @@ export const OpenCodeSSHPlugin: Plugin = async ({ client }) => {
             return [
               `target: ${active.alias} (${serverRef(active)})`,
               `command: ${args.command}`,
-              "estado: ejecutando...",
+              "status: running...",
               "",
-              "stdout parcial:",
-              liveStdout || "(vacio)",
+              "stdout (partial):",
+              liveStdout || "(empty)",
               "",
-              "stderr parcial:",
-              liveStderr || "(vacio)",
+              "stderr (partial):",
+              liveStderr || "(empty)",
             ].join("\n")
           }
 
@@ -637,10 +637,10 @@ export const OpenCodeSSHPlugin: Plugin = async ({ client }) => {
               `durationMs: ${result.durationMs}`,
               "",
               "stdout:",
-              stdout || "(vacio)",
+              stdout || "(empty)",
               "",
               "stderr:",
-              stderr || "(vacio)",
+              stderr || "(empty)",
             ].join("\n")
 
             publishMetadata({
@@ -658,11 +658,11 @@ export const OpenCodeSSHPlugin: Plugin = async ({ client }) => {
               `command: ${args.command}`,
               `error: ${message}`,
               "",
-              "stdout parcial:",
-              liveStdout || "(vacio)",
+              "stdout (partial):",
+              liveStdout || "(empty)",
               "",
-              "stderr parcial:",
-              liveStderr || "(vacio)",
+              "stderr (partial):",
+              liveStderr || "(empty)",
             ].join("\n")
 
             publishMetadata({
@@ -677,18 +677,18 @@ export const OpenCodeSSHPlugin: Plugin = async ({ client }) => {
       }),
 
       ssh_shell: tool({
-        description: "Ejecuta comando en modo shell interactivo (PTY)",
+        description: "Executes a command in interactive shell mode (PTY)",
         args: {
-          command: tool.schema.string().min(1).describe("Comando a ejecutar en la sesion shell"),
+          command: tool.schema.string().min(1).describe("Command to execute in the shell session"),
           timeoutMs: tool.schema.number().int().min(1000).max(600000).optional(),
         },
         async execute(args, context) {
           const active = await store.getActiveServer()
           if (!active) {
-            throw new Error("No hay servidor activo. Usa ssh_use <alias>.")
+            throw new Error("No active server. Use ssh_use <alias>.")
           }
 
-          // Si hay consola tmux abierta, enviar el comando para que sea visible
+          // If a tmux console is open, send the command so it is visible there
           if (active.activeTmuxSession) {
             sendToTmux(active, active.activeTmuxSession, args.command)
           }
@@ -725,7 +725,7 @@ export const OpenCodeSSHPlugin: Plugin = async ({ client }) => {
             await store.touchServer(active.alias)
 
             const body = truncateText(result.output.trimEnd(), SHELL_OUTPUT_LIMIT)
-            const rawOutput = [prompt, body || "(sin salida)", "", `[exit ${result.exitCode} | ${result.durationMs}ms]`].join(
+            const rawOutput = [prompt, body || "(no output)", "", `[exit ${result.exitCode} | ${result.durationMs}ms]`].join(
               "\n",
             )
 
@@ -777,47 +777,47 @@ export const OpenCodeSSHPlugin: Plugin = async ({ client }) => {
       }),
 
       ssh_shell_exit: tool({
-        description: "Cierra la sesion shell interactiva del servidor activo",
+        description: "Closes the interactive shell session for the active server",
         args: {
           alias: tool.schema.string().optional(),
         },
         async execute(args, context) {
           const activeAlias = args.alias ?? (await store.getActiveAlias())
           if (!activeAlias) {
-            return "No hay servidor activo y no se indico alias."
+            return "No active server and no alias was provided."
           }
 
           const key = shellSessionKey(context.sessionID, activeAlias)
           const handle = shellSessions.get(key)
 
           if (!handle) {
-            return `No hay sesion shell abierta para ${activeAlias} en esta conversacion.`
+            return `No open shell session for ${activeAlias} in this conversation.`
           }
 
           await closeShellSession(handle)
           shellSessions.delete(key)
 
-          return `Sesion shell cerrada para ${activeAlias}.`
+          return `Shell session closed for ${activeAlias}.`
         },
       }),
 
       ssh_console_close: tool({
-        description: "Indica que la consola tmux fue cerrada y deja de reenviar comandos a ella",
+        description: "Marks the tmux console as closed and stops forwarding commands to it",
         args: {
           alias: tool.schema.string().optional(),
         },
         async execute(args) {
           const activeAlias = args.alias ?? (await store.getActiveAlias())
           if (!activeAlias) {
-            return "No hay servidor activo."
+            return "No active server."
           }
           await store.setActiveTmuxSession(activeAlias, null)
-          return `Consola tmux desvinculada para ${activeAlias}. Los comandos ya no se reenviarán a la terminal.`
+          return `Tmux console unlinked for ${activeAlias}. Commands will no longer be forwarded to the terminal.`
         },
       }),
 
       ssh_test: tool({
-        description: "Prueba conectividad SSH para un alias o para el servidor activo",
+        description: "Tests SSH connectivity for an alias or the active server",
         args: {
           alias: tool.schema.string().optional(),
           connectTimeoutMs: tool.schema.number().int().min(1000).max(120000).optional(),
@@ -825,35 +825,35 @@ export const OpenCodeSSHPlugin: Plugin = async ({ client }) => {
         async execute(args) {
           let target = args.alias ? await store.getServerByAlias(args.alias) : await store.getActiveServer()
           if (!target) {
-            throw new Error(args.alias ? `Alias no encontrado: ${args.alias}` : "No hay servidor activo.")
+            throw new Error(args.alias ? `Alias not found: ${args.alias}` : "No active server.")
           }
 
           await testServerConnection(target, { connectTimeoutMs: args.connectTimeoutMs ?? 10000 })
-          return `Conexion SSH OK para ${target.alias} (${serverRef(target)})`
+          return `SSH connection OK for ${target.alias} (${serverRef(target)})`
         },
       }),
 
       ssh_remove: tool({
-        description: "Elimina un servidor SSH por alias",
+        description: "Removes an SSH server by alias",
         args: {
           alias: tool.schema.string().min(1),
         },
         async execute(args) {
           await store.removeServer(args.alias)
-          return `Servidor eliminado: ${args.alias}`
+          return `Server removed: ${args.alias}`
         },
       }),
 
       ssh_copy_id: tool({
-        description: "Copia tu clave publica SSH al servidor para autenticacion sin password. Genera la clave si no existe.",
+        description: "Copies your public SSH key to the server for passwordless authentication. Generates the key if it does not exist.",
         args: {
-          alias: tool.schema.string().optional().describe("Alias del servidor destino (por defecto: activo)"),
-          keyPath: tool.schema.string().optional().describe("Ruta a la clave privada. Por defecto: ~/.ssh/opencode_ssh_id"),
+          alias: tool.schema.string().optional().describe("Alias of the target server (default: active)"),
+          keyPath: tool.schema.string().optional().describe("Path to the private key. Default: ~/.ssh/opencode_ssh_id"),
         },
         async execute(args) {
           const target = args.alias ? await store.getServerByAlias(args.alias) : await store.getActiveServer()
           if (!target) {
-            throw new Error(args.alias ? `Alias no encontrado: ${args.alias}` : "No hay servidor activo.")
+            throw new Error(args.alias ? `Alias not found: ${args.alias}` : "No active server.")
           }
 
           const keyName = "opencode_ssh_id"
@@ -864,7 +864,7 @@ export const OpenCodeSSHPlugin: Plugin = async ({ client }) => {
 
           const lines: string[] = []
 
-          // 1. Generar clave si no existe
+          // 1. Generate key if it does not exist
           const { access } = await import("node:fs/promises")
           let keyExists = false
           try {
@@ -882,35 +882,35 @@ export const OpenCodeSSHPlugin: Plugin = async ({ client }) => {
                 "-N", "",
                 "-C", "opencode-ssh",
               ], { stdio: "ignore" })
-              child.on("close", (code) => code === 0 ? resolve() : reject(new Error(`ssh-keygen fallo con codigo ${code}`)))
+              child.on("close", (code) => code === 0 ? resolve() : reject(new Error(`ssh-keygen failed with code ${code}`)))
               child.on("error", reject)
             })
-            lines.push(`Clave generada: ${privateKeyPath}`)
+            lines.push(`Key generated: ${privateKeyPath}`)
           } else {
-            lines.push(`Clave existente: ${privateKeyPath}`)
+            lines.push(`Existing key: ${privateKeyPath}`)
           }
 
-          // 2. Leer clave publica
+          // 2. Read public key
           const { readFile: readFileFs } = await import("node:fs/promises")
           const pubKey = (await readFileFs(publicKeyPath, "utf-8")).trim()
-          lines.push(`Clave publica: ${pubKey.split(" ").slice(0, 2).join(" ").slice(0, 60)}...`)
+          lines.push(`Public key: ${pubKey.split(" ").slice(0, 2).join(" ").slice(0, 60)}...`)
 
-          // 3. Subir al servidor via ssh2 (usa la auth actual del perfil)
+          // 3. Upload to server via ssh2 (uses the current profile auth)
           const uploadCmd = `mkdir -p ~/.ssh && chmod 700 ~/.ssh && grep -qF ${JSON.stringify(pubKey)} ~/.ssh/authorized_keys 2>/dev/null || echo ${JSON.stringify(pubKey)} >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys && echo OK`
           const result = await execOnServer(target, uploadCmd)
           if (result.exitCode !== 0 || !result.stdout.includes("OK")) {
-            throw new Error(`No se pudo subir la clave: ${result.stderr || result.stdout}`)
+            throw new Error(`Failed to upload key: ${result.stderr || result.stdout}`)
           }
-          lines.push("Clave publica agregada a authorized_keys en el servidor.")
+          lines.push("Public key added to authorized_keys on the server.")
 
-          // 4. Actualizar perfil a key auth
+          // 4. Update profile to key auth
           const keyRelPath = `~/.ssh/${keyName}`
           await store.updateServerAuth(target.alias, {
             type: "key",
             privateKeyPath: args.keyPath ?? keyRelPath,
           })
-          lines.push(`Perfil '${target.alias}' actualizado a auth=key (${args.keyPath ?? keyRelPath}).`)
-          lines.push("Desde ahora ssh_console_open no pedira password.")
+          lines.push(`Profile '${target.alias}' updated to auth=key (${args.keyPath ?? keyRelPath}).`)
+          lines.push("From now on ssh_console_open will not ask for a password.")
 
           return lines.join("\n")
         },
@@ -958,16 +958,16 @@ export const OpenCodeSSHPlugin: Plugin = async ({ client }) => {
       if (!active) return
 
       const lines = [
-        "Hay un servidor SSH activo en este proyecto.",
-        `Servidor: ${active.alias} (${serverRef(active)}).`,
-        "Para ejecutar comandos remotos, prioriza ssh_exec o ssh_shell en vez de bash local.",
-        "Si el usuario pide abrir una terminal separada o ver comandos en consola real, usa ssh_console_open.",
+        "There is an active SSH server in this project.",
+        `Server: ${active.alias} (${serverRef(active)}).`,
+        "To run remote commands, prefer ssh_exec or ssh_shell over local bash.",
+        "If the user asks to open a separate terminal or see commands in a real console, use ssh_console_open.",
       ]
 
       if (active.activeTmuxSession) {
         lines.push(
-          `Hay una consola tmux abierta (sesion: ${active.activeTmuxSession}). Los comandos ejecutados via ssh_exec y ssh_shell se envian automaticamente a esa consola para que sean visibles.`,
-          "Si el usuario cierra la consola, llama ssh_console_close para desvincularla.",
+          `There is an open tmux console (session: ${active.activeTmuxSession}). Commands run via ssh_exec and ssh_shell are automatically sent to that console so they are visible.`,
+          "If the user closes the console, call ssh_console_close to unlink it.",
         )
       }
 

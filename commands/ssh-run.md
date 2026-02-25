@@ -1,17 +1,17 @@
 ---
-description: Ejecutar comando en servidor SSH activo
+description: Run a command on the active SSH server
 ---
-Ejecuta un comando remoto usando `ssh_exec`.
+Execute a remote command using `ssh_exec`.
 
-Argumentos de entrada: `$ARGUMENTS`
+Input arguments: `$ARGUMENTS`
 
-Reglas:
-1) Si no hay argumentos, explica que debe enviarse un comando remoto.
-2) Si hay argumentos, usa todo `$ARGUMENTS` como valor de `command`.
-3) Llama `ssh_exec` exactamente una vez.
-4) Luego de ejecutar, muestra la salida cruda en formato terminal dentro de un bloque de codigo, sin resumen ni bullets.
-5) Si hay `stderr`, incluyelo debajo de `stdout` tal cual venga de la herramienta.
+Rules:
+1) If there are no arguments, explain that a remote command must be provided.
+2) If there are arguments, use the entire `$ARGUMENTS` as the value of `command`.
+3) Call `ssh_exec` exactly once.
+4) After execution, display the raw output in terminal format inside a code block, without a summary or bullets.
+5) If there is `stderr`, include it below `stdout` exactly as returned by the tool.
 
-Ejemplos:
+Examples:
 - `/ssh-run uname -a`
 - `/ssh-run systemctl status nginx`

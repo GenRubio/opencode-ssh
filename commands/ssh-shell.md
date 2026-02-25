@@ -1,16 +1,16 @@
 ---
-description: Ejecutar comando en modo shell interactivo
+description: Run a command in interactive shell mode
 ---
-Ejecuta un comando remoto usando `ssh_shell` (modo consola/PTY).
+Execute a remote command using `ssh_shell` (console/PTY mode).
 
-Argumentos de entrada: `$ARGUMENTS`
+Input arguments: `$ARGUMENTS`
 
-Reglas:
-1) Si no hay argumentos, explica que debe enviarse un comando remoto.
-2) Si hay argumentos, usa todo `$ARGUMENTS` como valor de `command`.
-3) Llama `ssh_shell` exactamente una vez.
-4) Devuelve la salida cruda como terminal, sin resumen.
+Rules:
+1) If there are no arguments, explain that a remote command must be provided.
+2) If there are arguments, use the entire `$ARGUMENTS` as the value of `command`.
+3) Call `ssh_shell` exactly once.
+4) Return the raw output as terminal output, without a summary.
 
-Ejemplos:
+Examples:
 - `/ssh-shell pwd`
 - `/ssh-shell ls -la`

@@ -1,16 +1,16 @@
 ---
-description: Abrir terminal local separada al servidor SSH
+description: Open a separate local terminal connected to the SSH server
 ---
-Abre una terminal local separada conectada al servidor activo usando `ssh_console_open`.
+Open a separate local terminal connected to the active server using `ssh_console_open`.
 
-Argumentos de entrada: `$ARGUMENTS`
+Input arguments: `$ARGUMENTS`
 
-Reglas:
-1) Si hay argumentos, toma el primer token como `alias`.
-2) Si no hay argumentos, usa el servidor activo.
-3) Llama `ssh_console_open` exactamente una vez.
-4) Muestra siempre el comando manual devuelto por la herramienta en un bloque de codigo para que el usuario pueda pegarlo si no aparece la ventana.
+Rules:
+1) If there are arguments, take the first token as `alias`.
+2) If there are no arguments, use the active server.
+3) Call `ssh_console_open` exactly once.
+4) Always display the manual command returned by the tool in a code block so the user can paste it if the window does not open automatically.
 
-Ejemplos:
+Examples:
 - `/ssh-console`
 - `/ssh-console bm-old`

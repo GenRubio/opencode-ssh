@@ -1,15 +1,15 @@
 ---
-description: Listar servidores SSH registrados
+description: List registered SSH servers
 ---
-Muestra servidores registrados usando `ssh_list`.
+Show registered servers using `ssh_list`.
 
-Argumentos de entrada: `$ARGUMENTS`
+Input arguments: `$ARGUMENTS`
 
-Reglas:
-1) Si aparece `--check`, llama `ssh_list` con `checkConnection=true`.
-2) En otro caso, llama `ssh_list` con `checkConnection=false`.
-3) Llama la herramienta una sola vez.
+Rules:
+1) If `--check` appears, call `ssh_list` with `checkConnection=true`.
+2) Otherwise, call `ssh_list` with `checkConnection=false`.
+3) Call the tool exactly once.
 
-Ejemplos:
+Examples:
 - `/ssh-list`
 - `/ssh-list --check`
