@@ -5,6 +5,7 @@ import { ServerStore } from "./opencode-ssh/store"
 import type { ServerAuth, ServerProfile } from "./opencode-ssh/types"
 
 const store = new ServerStore()
+const MAX_METADATA_LENGTH = 30000
 
 function asBoolean(value: boolean | undefined, fallback: boolean): boolean {
   return value === undefined ? fallback : value
@@ -14,6 +15,13 @@ function truncateText(text: string, maxLength: number): string {
   if (text.length <= maxLength) return text
   const suffix = `\n... output truncado (${text.length - maxLength} caracteres omitidos)`
   return `${text.slice(0, maxLength)}${suffix}`
+}
+
+function parseExitCodeFromOutput(text: string): number | null {
+  const match = text.match(/\nexitCode:\s*(-?\d+)/)
+  if (!match) return null
+  const value = Number(match[1])
+  return Number.isInteger(value) ? value : null
 }
 
 function serverRef(server: ServerProfile): string {
@@ -229,12 +237,14 @@ export const OpenCodeSSHPlugin: Plugin = async ({ client }) => {
           }
 
           context.metadata({
-            title: `SSH ${active.alias}`,
+            title: `SSH ${active.alias} - ${args.command}`,
             metadata: {
               alias: active.alias,
               host: active.host,
               port: active.port,
               user: active.user,
+              description: args.command,
+              output: "",
             },
           })
 
@@ -247,7 +257,7 @@ export const OpenCodeSSHPlugin: Plugin = async ({ client }) => {
           const stdout = truncateText(result.stdout, 12000)
           const stderr = truncateText(result.stderr, 12000)
 
-          return [
+          const rawOutput = [
             `target: ${active.alias} (${serverRef(active)})`,
             `command: ${args.command}`,
             `exitCode: ${result.exitCode}`,
@@ -259,6 +269,24 @@ export const OpenCodeSSHPlugin: Plugin = async ({ client }) => {
             "stderr:",
             stderr || "(vacio)",
           ].join("\n")
+
+          context.metadata({
+            title: `SSH ${active.alias} - ${args.command}`,
+            metadata: {
+              alias: active.alias,
+              host: active.host,
+              port: active.port,
+              user: active.user,
+              description: args.command,
+              exit: result.exitCode,
+              output:
+                rawOutput.length > MAX_METADATA_LENGTH
+                  ? `${rawOutput.slice(0, MAX_METADATA_LENGTH)}\n\n...`
+                  : rawOutput,
+            },
+          })
+
+          return rawOutput
         },
       }),
 
@@ -290,6 +318,25 @@ export const OpenCodeSSHPlugin: Plugin = async ({ client }) => {
           return `Servidor eliminado: ${args.alias}`
         },
       }),
+    },
+
+    "tool.execute.after": async (input, output) => {
+      if (input.tool !== "ssh_exec") return
+
+      const args = input.args as { command?: string }
+      const command = args.command ?? "ssh command"
+      const exit = parseExitCodeFromOutput(output.output)
+
+      output.title = `SSH Exec - ${command}`
+      output.metadata = {
+        ...(output.metadata || {}),
+        description: command,
+        exit: exit ?? undefined,
+        output:
+          output.output.length > MAX_METADATA_LENGTH
+            ? `${output.output.slice(0, MAX_METADATA_LENGTH)}\n\n...`
+            : output.output,
+      }
     },
 
     "experimental.chat.system.transform": async (_input, output) => {

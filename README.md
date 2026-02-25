@@ -18,37 +18,50 @@ Plugin para OpenCode que permite gestionar servidores SSH y ejecutar comandos re
   - `/ssh-current`
   - `/ssh-run`
 
-## Instalacion desde GitHub
+## Instalacion sin clonar (estilo opencode-seo)
 
-1) Clona el repositorio
+### macOS / Linux
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/GenRubio/opencode-ssh/main/install.sh | bash
+```
+
+Si publicas en otro repo/rama:
+
+```bash
+OPENCODE_SSH_REPO="tu-user/tu-repo" OPENCODE_SSH_REF="main" curl -fsSL "https://raw.githubusercontent.com/tu-user/tu-repo/main/install.sh" | bash
+```
+
+### Windows (PowerShell)
+
+```powershell
+irm https://raw.githubusercontent.com/GenRubio/opencode-ssh/main/install.ps1 | iex
+```
+
+Si publicas en otro repo/rama:
+
+```powershell
+$env:OPENCODE_SSH_REPO="tu-user/tu-repo"
+$env:OPENCODE_SSH_REF="main"
+irm https://raw.githubusercontent.com/tu-user/tu-repo/main/install.ps1 | iex
+```
+
+Ambos instaladores copian plugin + comandos a `~/.config/opencode`, instalan dependencias y crean un manifiesto local.
+
+Despues reinicia OpenCode:
+
+- En terminal: cierra y vuelve a abrir.
+- En GUI: cierra completamente la app y vuelve a abrir.
+
+## Instalacion desde clon (desarrollo)
 
 ```bash
 git clone <TU_REPO_GITHUB>
 cd opencode-ssh
-```
-
-2) Instala dependencias del proyecto
-
-```bash
 npm install
-```
-
-3) Instala el plugin en OpenCode (global)
-
-```bash
 npm run install:opencode
-```
-
-4) Verifica instalacion
-
-```bash
 npm run verify:opencode
 ```
-
-5) Reinicia OpenCode
-
-- En terminal: cierra y vuelve a abrir.
-- En GUI: cierra completamente la app y vuelve a abrir.
 
 ## Uso rapido
 
@@ -89,6 +102,22 @@ Importante: si usas OpenCode en GUI, reinicia la app despues de crear/actualizar
 
 ## Desinstalar
 
+Sin clonar:
+
+### macOS / Linux
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/GenRubio/opencode-ssh/main/uninstall.sh | bash
+```
+
+### Windows (PowerShell)
+
+```powershell
+irm https://raw.githubusercontent.com/GenRubio/opencode-ssh/main/uninstall.ps1 | iex
+```
+
+Desde clon:
+
 ```bash
 npm run uninstall:opencode
 ```
@@ -100,6 +129,10 @@ Despues reinicia OpenCode.
 - `plugins/opencode-ssh.ts`
 - `plugins/opencode-ssh/*`
 - `commands/*.md`
+- `install.sh`
+- `install.ps1`
+- `uninstall.sh`
+- `uninstall.ps1`
 - `scripts/install.mjs`
 - `scripts/uninstall.mjs`
 - `scripts/verify-install.mjs`
