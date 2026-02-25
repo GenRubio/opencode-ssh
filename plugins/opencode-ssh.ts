@@ -6,6 +6,8 @@ import type { ServerAuth, ServerProfile } from "./opencode-ssh/types"
 
 const store = new ServerStore()
 const MAX_METADATA_LENGTH = 30000
+const LIVE_STREAM_BUFFER_LENGTH = 6000
+const LIVE_UPDATE_INTERVAL_MS = 400
 
 function asBoolean(value: boolean | undefined, fallback: boolean): boolean {
   return value === undefined ? fallback : value
@@ -15,6 +17,12 @@ function truncateText(text: string, maxLength: number): string {
   if (text.length <= maxLength) return text
   const suffix = `\n... output truncado (${text.length - maxLength} caracteres omitidos)`
   return `${text.slice(0, maxLength)}${suffix}`
+}
+
+function keepTail(text: string, maxLength: number): string {
+  if (text.length <= maxLength) return text
+  const prefix = `... salida parcial truncada (${text.length - maxLength} caracteres omitidos)\n`
+  return `${prefix}${text.slice(-maxLength)}`
 }
 
 function parseExitCodeFromOutput(text: string): number | null {
@@ -236,57 +244,125 @@ export const OpenCodeSSHPlugin: Plugin = async ({ client }) => {
             throw new Error("No hay servidor activo. Usa ssh_use <alias>.")
           }
 
-          context.metadata({
-            title: `SSH ${active.alias} - ${args.command}`,
-            metadata: {
-              alias: active.alias,
-              host: active.host,
-              port: active.port,
-              user: active.user,
-              description: args.command,
-              output: "",
-            },
-          })
+          const title = `SSH ${active.alias} - ${args.command}`
+          let liveStdout = ""
+          let liveStderr = ""
+          let lastUpdateAt = 0
 
-          const result = await execOnServer(active, args.command, {
-            timeoutMs: args.timeoutMs ?? 120000,
-          })
+          const renderLiveOutput = (): string => {
+            return [
+              `target: ${active.alias} (${serverRef(active)})`,
+              `command: ${args.command}`,
+              "estado: ejecutando...",
+              "",
+              "stdout parcial:",
+              liveStdout || "(vacio)",
+              "",
+              "stderr parcial:",
+              liveStderr || "(vacio)",
+            ].join("\n")
+          }
 
-          await store.touchServer(active.alias)
+          const publishMetadata = (input: {
+            output: string
+            exit?: number
+            status: "running" | "completed" | "error"
+            error?: string
+          }): void => {
+            context.metadata({
+              title,
+              metadata: {
+                alias: active.alias,
+                host: active.host,
+                port: active.port,
+                user: active.user,
+                description: args.command,
+                status: input.status,
+                exit: input.exit,
+                error: input.error,
+                output:
+                  input.output.length > MAX_METADATA_LENGTH
+                    ? `${input.output.slice(0, MAX_METADATA_LENGTH)}\n\n...`
+                    : input.output,
+              },
+            })
+          }
 
-          const stdout = truncateText(result.stdout, 12000)
-          const stderr = truncateText(result.stderr, 12000)
+          const maybePublishLiveMetadata = (force: boolean): void => {
+            const now = Date.now()
+            if (!force && now - lastUpdateAt < LIVE_UPDATE_INTERVAL_MS) {
+              return
+            }
+            lastUpdateAt = now
+            publishMetadata({
+              status: "running",
+              output: renderLiveOutput(),
+            })
+          }
 
-          const rawOutput = [
-            `target: ${active.alias} (${serverRef(active)})`,
-            `command: ${args.command}`,
-            `exitCode: ${result.exitCode}`,
-            `durationMs: ${result.durationMs}`,
-            "",
-            "stdout:",
-            stdout || "(vacio)",
-            "",
-            "stderr:",
-            stderr || "(vacio)",
-          ].join("\n")
+          maybePublishLiveMetadata(true)
 
-          context.metadata({
-            title: `SSH ${active.alias} - ${args.command}`,
-            metadata: {
-              alias: active.alias,
-              host: active.host,
-              port: active.port,
-              user: active.user,
-              description: args.command,
+          try {
+            const result = await execOnServer(active, args.command, {
+              timeoutMs: args.timeoutMs ?? 120000,
+              onStdoutChunk: (chunk) => {
+                liveStdout = keepTail(`${liveStdout}${chunk}`, LIVE_STREAM_BUFFER_LENGTH)
+                maybePublishLiveMetadata(false)
+              },
+              onStderrChunk: (chunk) => {
+                liveStderr = keepTail(`${liveStderr}${chunk}`, LIVE_STREAM_BUFFER_LENGTH)
+                maybePublishLiveMetadata(false)
+              },
+            })
+
+            await store.touchServer(active.alias)
+
+            const stdout = truncateText(result.stdout, 12000)
+            const stderr = truncateText(result.stderr, 12000)
+
+            const rawOutput = [
+              `target: ${active.alias} (${serverRef(active)})`,
+              `command: ${args.command}`,
+              `exitCode: ${result.exitCode}`,
+              `durationMs: ${result.durationMs}`,
+              "",
+              "stdout:",
+              stdout || "(vacio)",
+              "",
+              "stderr:",
+              stderr || "(vacio)",
+            ].join("\n")
+
+            publishMetadata({
+              status: "completed",
               exit: result.exitCode,
-              output:
-                rawOutput.length > MAX_METADATA_LENGTH
-                  ? `${rawOutput.slice(0, MAX_METADATA_LENGTH)}\n\n...`
-                  : rawOutput,
-            },
-          })
+              output: rawOutput,
+            })
 
-          return rawOutput
+            return rawOutput
+          } catch (error) {
+            const message = error instanceof Error ? error.message : String(error)
+
+            const errorOutput = [
+              `target: ${active.alias} (${serverRef(active)})`,
+              `command: ${args.command}`,
+              `error: ${message}`,
+              "",
+              "stdout parcial:",
+              liveStdout || "(vacio)",
+              "",
+              "stderr parcial:",
+              liveStderr || "(vacio)",
+            ].join("\n")
+
+            publishMetadata({
+              status: "error",
+              error: message,
+              output: errorOutput,
+            })
+
+            throw error
+          }
         },
       }),
 

@@ -9,6 +9,8 @@ import type { ServerProfile } from "./types"
 export type ExecOptions = {
   timeoutMs?: number
   connectTimeoutMs?: number
+  onStdoutChunk?: (chunk: string) => void
+  onStderrChunk?: (chunk: string) => void
 }
 
 export type ExecResult = {
@@ -149,11 +151,15 @@ export async function execOnServer(
         }
 
         stream.on("data", (chunk: Buffer | string) => {
-          stdout += chunk.toString()
+          const value = chunk.toString()
+          stdout += value
+          options?.onStdoutChunk?.(value)
         })
 
         stream.stderr.on("data", (chunk: Buffer | string) => {
-          stderr += chunk.toString()
+          const value = chunk.toString()
+          stderr += value
+          options?.onStderrChunk?.(value)
         })
 
         stream.on("error", (streamError: Error) => {

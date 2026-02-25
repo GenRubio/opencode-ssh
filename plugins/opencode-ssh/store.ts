@@ -1,6 +1,7 @@
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises"
 import { homedir } from "node:os"
 import path from "node:path"
+import { randomUUID } from "node:crypto"
 
 import type { AddServerInput, ServerProfile, StoreFile } from "./types"
 
@@ -85,6 +86,7 @@ export class ServerStore {
   private readonly storeDir: string
   private readonly storeFilePath: string
   private cache: StoreFile | null = null
+  private writeChain: Promise<void> = Promise.resolve()
 
   constructor(input?: { storeDir?: string }) {
     this.storeDir = input?.storeDir ?? defaultStoreDir()
@@ -131,13 +133,18 @@ export class ServerStore {
   }
 
   private async saveToDisk(data: StoreFile): Promise<void> {
-    await this.ensureStoreDir()
+    const operation = this.writeChain.then(async () => {
+      await this.ensureStoreDir()
 
-    const tempPath = `${this.storeFilePath}.tmp`
-    const payload = `${JSON.stringify(data, null, 2)}\n`
+      const tempPath = `${this.storeFilePath}.${randomUUID()}.tmp`
+      const payload = `${JSON.stringify(data, null, 2)}\n`
 
-    await writeFile(tempPath, payload, "utf8")
-    await rename(tempPath, this.storeFilePath)
+      await writeFile(tempPath, payload, "utf8")
+      await rename(tempPath, this.storeFilePath)
+    })
+
+    this.writeChain = operation.catch(() => undefined)
+    await operation
   }
 
   private async getData(): Promise<StoreFile> {
