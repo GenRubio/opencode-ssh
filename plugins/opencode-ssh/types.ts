@@ -20,6 +20,8 @@ export type ServerProfile = {
   user: string
   auth: ServerAuth
   knownHostFingerprint?: string
+  /** Nombre de sesion tmux activa abierta con ssh_console_open, si existe */
+  activeTmuxSession?: string
   createdAt: string
   updatedAt: string
   lastUsedAt?: string

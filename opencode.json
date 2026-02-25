@@ -17,9 +17,21 @@
       "description": "Ver servidor SSH activo",
       "template": "Muestra el servidor activo con la herramienta `ssh_current`.\n\nLlama `ssh_current` exactamente una vez."
     },
+    "ssh-console": {
+      "description": "Abrir terminal local separada al servidor SSH",
+      "template": "Abre una terminal local separada conectada al servidor activo usando `ssh_console_open`.\n\nArgumentos de entrada: `$ARGUMENTS`\n\nReglas:\n1) Si hay argumentos, toma el primer token como `alias`.\n2) Si no hay argumentos, usa el servidor activo.\n3) Llama `ssh_console_open` exactamente una vez.\n4) Muestra siempre el comando manual devuelto por la herramienta en un bloque de codigo para que el usuario pueda pegarlo si no aparece la ventana.\n\nEjemplos:\n- `/ssh-console`\n- `/ssh-console bm-old`"
+    },
     "ssh-run": {
       "description": "Ejecutar comando en servidor SSH activo",
-      "template": "Ejecuta un comando remoto usando `ssh_exec`.\n\nArgumentos de entrada: `$ARGUMENTS`\n\nReglas:\n1) Si no hay argumentos, explica que debe enviarse un comando remoto.\n2) Si hay argumentos, usa todo `$ARGUMENTS` como valor de `command`.\n3) Llama `ssh_exec` exactamente una vez.\n\nEjemplos:\n- `/ssh-run uname -a`\n- `/ssh-run systemctl status nginx`"
+      "template": "Ejecuta un comando remoto usando `ssh_exec`.\n\nArgumentos de entrada: `$ARGUMENTS`\n\nReglas:\n1) Si no hay argumentos, explica que debe enviarse un comando remoto.\n2) Si hay argumentos, usa todo `$ARGUMENTS` como valor de `command`.\n3) Llama `ssh_exec` exactamente una vez.\n4) Luego de ejecutar, muestra la salida cruda en formato terminal dentro de un bloque de codigo, sin resumen ni bullets.\n5) Si hay `stderr`, incluyelo debajo de `stdout` tal cual venga de la herramienta.\n\nEjemplos:\n- `/ssh-run uname -a`\n- `/ssh-run systemctl status nginx`"
+    },
+    "ssh-shell": {
+      "description": "Ejecutar comando en modo shell interactivo",
+      "template": "Ejecuta un comando remoto usando `ssh_shell` (modo consola/PTY).\n\nArgumentos de entrada: `$ARGUMENTS`\n\nReglas:\n1) Si no hay argumentos, explica que debe enviarse un comando remoto.\n2) Si hay argumentos, usa todo `$ARGUMENTS` como valor de `command`.\n3) Llama `ssh_shell` exactamente una vez.\n4) Devuelve la salida cruda como terminal, sin resumen.\n\nEjemplos:\n- `/ssh-shell pwd`\n- `/ssh-shell ls -la`"
+    },
+    "ssh-shell-exit": {
+      "description": "Cerrar sesion shell interactiva",
+      "template": "Cierra la sesion shell interactiva usando `ssh_shell_exit`.\n\nArgumentos de entrada: `$ARGUMENTS`\n\nReglas:\n1) Si hay argumentos, toma el primer token como `alias`.\n2) Si no hay argumentos, llama sin `alias`.\n3) Llama `ssh_shell_exit` exactamente una vez.\n\nEjemplos:\n- `/ssh-shell-exit`\n- `/ssh-shell-exit bm-old`"
     }
   }
 }

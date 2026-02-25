@@ -36,8 +36,24 @@ const sourceFiles = [
     to: path.join(configDir, "commands", "ssh-current.md"),
   },
   {
+    from: path.join(repoRoot, "commands", "ssh-console.md"),
+    to: path.join(configDir, "commands", "ssh-console.md"),
+  },
+  {
     from: path.join(repoRoot, "commands", "ssh-run.md"),
     to: path.join(configDir, "commands", "ssh-run.md"),
+  },
+  {
+    from: path.join(repoRoot, "commands", "ssh-shell.md"),
+    to: path.join(configDir, "commands", "ssh-shell.md"),
+  },
+  {
+    from: path.join(repoRoot, "commands", "ssh-shell-exit.md"),
+    to: path.join(configDir, "commands", "ssh-shell-exit.md"),
+  },
+  {
+    from: path.join(repoRoot, "commands", "ssh-setup-key.md"),
+    to: path.join(configDir, "commands", "ssh-setup-key.md"),
   },
 ]
 

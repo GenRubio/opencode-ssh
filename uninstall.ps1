@@ -32,7 +32,10 @@ Remove-Target "$ConfigDir/commands/ssh-new.md"
 Remove-Target "$ConfigDir/commands/ssh-list.md"
 Remove-Target "$ConfigDir/commands/ssh-use.md"
 Remove-Target "$ConfigDir/commands/ssh-current.md"
+Remove-Target "$ConfigDir/commands/ssh-console.md"
 Remove-Target "$ConfigDir/commands/ssh-run.md"
+Remove-Target "$ConfigDir/commands/ssh-shell.md"
+Remove-Target "$ConfigDir/commands/ssh-shell-exit.md"
 Remove-Target $ManifestPath
 
 Write-Host "Done. Restart OpenCode to apply changes."

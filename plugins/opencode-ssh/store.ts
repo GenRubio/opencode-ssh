@@ -258,4 +258,33 @@ export class ServerStore {
 
     await this.saveToDisk(data)
   }
+
+  async updateServerAuth(alias: string, auth: ServerProfile["auth"]): Promise<ServerProfile> {
+    const data = await this.getData()
+    const existing = data.servers.find((server) => sameAlias(server.alias, alias))
+    if (!existing) {
+      throw new Error(`Alias no encontrado: ${alias}`)
+    }
+
+    existing.auth = auth
+    existing.updatedAt = nowIso()
+
+    await this.saveToDisk(data)
+    return existing
+  }
+
+  async setActiveTmuxSession(alias: string, sessionName: string | null): Promise<void> {
+    const data = await this.getData()
+    const existing = data.servers.find((server) => sameAlias(server.alias, alias))
+    if (!existing) return
+
+    if (sessionName === null) {
+      delete existing.activeTmuxSession
+    } else {
+      existing.activeTmuxSession = sessionName
+    }
+    existing.updatedAt = nowIso()
+
+    await this.saveToDisk(data)
+  }
 }

@@ -44,7 +44,10 @@ Download-File "$BaseUrl/commands/ssh-new.md" "$ConfigDir/commands/ssh-new.md"
 Download-File "$BaseUrl/commands/ssh-list.md" "$ConfigDir/commands/ssh-list.md"
 Download-File "$BaseUrl/commands/ssh-use.md" "$ConfigDir/commands/ssh-use.md"
 Download-File "$BaseUrl/commands/ssh-current.md" "$ConfigDir/commands/ssh-current.md"
+Download-File "$BaseUrl/commands/ssh-console.md" "$ConfigDir/commands/ssh-console.md"
 Download-File "$BaseUrl/commands/ssh-run.md" "$ConfigDir/commands/ssh-run.md"
+Download-File "$BaseUrl/commands/ssh-shell.md" "$ConfigDir/commands/ssh-shell.md"
+Download-File "$BaseUrl/commands/ssh-shell-exit.md" "$ConfigDir/commands/ssh-shell-exit.md"
 
 if (-not (Test-Path $ConfigDir)) {
   New-Item -ItemType Directory -Path $ConfigDir -Force | Out-Null
@@ -79,7 +82,10 @@ $manifest = [ordered]@{
     "$ConfigDir/commands/ssh-list.md",
     "$ConfigDir/commands/ssh-use.md",
     "$ConfigDir/commands/ssh-current.md",
-    "$ConfigDir/commands/ssh-run.md"
+    "$ConfigDir/commands/ssh-console.md",
+    "$ConfigDir/commands/ssh-run.md",
+    "$ConfigDir/commands/ssh-shell.md",
+    "$ConfigDir/commands/ssh-shell-exit.md"
   )
 }
 

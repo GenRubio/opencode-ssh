@@ -6,8 +6,9 @@ This file is kept for internal notes. Public documentation is in `README.md`.
 
 Implemented:
 
-- `ssh_new`, `ssh_list`, `ssh_use`, `ssh_current`, `ssh_exec`, `ssh_test`, `ssh_remove`
-- Chat commands: `/ssh-new`, `/ssh-list`, `/ssh-use`, `/ssh-current`, `/ssh-run`
+- `ssh_new`, `ssh_list`, `ssh_use`, `ssh_current`, `ssh_console_open`, `ssh_exec`, `ssh_test`, `ssh_remove`
+- `ssh_shell`, `ssh_shell_exit`
+- Chat commands: `/ssh-new`, `/ssh-list`, `/ssh-use`, `/ssh-current`, `/ssh-console`, `/ssh-run`, `/ssh-shell`, `/ssh-shell-exit`
 
 ## Storage
 
@@ -23,4 +24,3 @@ Implemented:
 
 - Strict host fingerprint validation is not enforced yet
 - No `scp` / `sftp` support yet
-- No full interactive TTY session mode yet

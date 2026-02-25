@@ -8,7 +8,10 @@ SSH plugin for [OpenCode](https://opencode.ai) that lets you manage SSH servers 
 - List saved servers (`ssh_list`)
 - Select active server (`ssh_use`)
 - Show active server (`ssh_current`)
+- Open a separate local terminal connected to server (`ssh_console_open`)
 - Execute remote commands (`ssh_exec`)
+- Execute commands in interactive shell mode (`ssh_shell`)
+- Close interactive shell session (`ssh_shell_exit`)
 - Test connectivity (`ssh_test`)
 - Remove server profiles (`ssh_remove`)
 - Chat commands:
@@ -16,7 +19,10 @@ SSH plugin for [OpenCode](https://opencode.ai) that lets you manage SSH servers 
   - `/ssh-list`
   - `/ssh-use`
   - `/ssh-current`
+  - `/ssh-console`
   - `/ssh-run`
+  - `/ssh-shell`
+  - `/ssh-shell-exit`
 
 ## Install (no clone required)
 
@@ -44,7 +50,10 @@ After installing, restart OpenCode:
 /ssh-new
 /ssh-list
 /ssh-use my-server
+/ssh-console
 /ssh-run whoami
+/ssh-shell pwd
+/ssh-shell-exit
 ```
 
 ## Password Auth and GUI Note

@@ -37,7 +37,10 @@ download "${BASE_URL}/commands/ssh-new.md" "${CONFIG_DIR}/commands/ssh-new.md"
 download "${BASE_URL}/commands/ssh-list.md" "${CONFIG_DIR}/commands/ssh-list.md"
 download "${BASE_URL}/commands/ssh-use.md" "${CONFIG_DIR}/commands/ssh-use.md"
 download "${BASE_URL}/commands/ssh-current.md" "${CONFIG_DIR}/commands/ssh-current.md"
+download "${BASE_URL}/commands/ssh-console.md" "${CONFIG_DIR}/commands/ssh-console.md"
 download "${BASE_URL}/commands/ssh-run.md" "${CONFIG_DIR}/commands/ssh-run.md"
+download "${BASE_URL}/commands/ssh-shell.md" "${CONFIG_DIR}/commands/ssh-shell.md"
+download "${BASE_URL}/commands/ssh-shell-exit.md" "${CONFIG_DIR}/commands/ssh-shell-exit.md"
 
 mkdir -p "${CONFIG_DIR}"
 
@@ -73,7 +76,10 @@ cat >"${CONFIG_DIR}/${PLUGIN_NAME}.manifest.json" <<JSON
     "${CONFIG_DIR}/commands/ssh-list.md",
     "${CONFIG_DIR}/commands/ssh-use.md",
     "${CONFIG_DIR}/commands/ssh-current.md",
-    "${CONFIG_DIR}/commands/ssh-run.md"
+    "${CONFIG_DIR}/commands/ssh-console.md",
+    "${CONFIG_DIR}/commands/ssh-run.md",
+    "${CONFIG_DIR}/commands/ssh-shell.md",
+    "${CONFIG_DIR}/commands/ssh-shell-exit.md"
   ]
 }
 JSON

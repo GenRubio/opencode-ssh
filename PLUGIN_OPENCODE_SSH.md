@@ -18,7 +18,10 @@ Build an OpenCode plugin that executes remote actions over SSH from chat, using 
 - `ssh_list`
 - `ssh_use`
 - `ssh_current`
+- `ssh_console_open`
 - `ssh_exec`
+- `ssh_shell`
+- `ssh_shell_exit`
 - `ssh_test`
 - `ssh_remove`
 
@@ -53,5 +56,4 @@ Build an OpenCode plugin that executes remote actions over SSH from chat, using 
 
 - Strict host fingerprint enforcement
 - `scp` / `sftp` support
-- Optional interactive shell session mode
 - Risk-level confirmations for destructive commands

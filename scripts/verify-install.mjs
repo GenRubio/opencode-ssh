@@ -13,7 +13,10 @@ const requiredPaths = [
   path.join(configDir, "commands", "ssh-list.md"),
   path.join(configDir, "commands", "ssh-use.md"),
   path.join(configDir, "commands", "ssh-current.md"),
+  path.join(configDir, "commands", "ssh-console.md"),
   path.join(configDir, "commands", "ssh-run.md"),
+  path.join(configDir, "commands", "ssh-shell.md"),
+  path.join(configDir, "commands", "ssh-shell-exit.md"),
 ]
 
 async function checkPath(filePath) {
