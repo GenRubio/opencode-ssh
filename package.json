@@ -1,0 +1,20 @@
+{
+  "name": "opencode-ssh-plugin",
+  "version": "0.1.0",
+  "description": "SSH plugin for OpenCode with chat-driven remote execution",
+  "private": true,
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "install:opencode": "node scripts/install.mjs",
+    "uninstall:opencode": "node scripts/uninstall.mjs",
+    "verify:opencode": "node scripts/verify-install.mjs"
+  },
+  "dependencies": {
+    "@opencode-ai/plugin": "1.2.12",
+    "ssh2": "^1.16.0"
+  },
+  "devDependencies": {
+    "@types/ssh2": "^1.15.5",
+    "typescript": "^5.9.2"
+  }
+}

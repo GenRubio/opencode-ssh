@@ -1,0 +1,25 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "command": {
+    "ssh-new": {
+      "description": "Registrar nuevo servidor SSH (wizard)",
+      "template": "Configura un servidor usando la herramienta `ssh_new` en modo asistido paso a paso.\n\nArgumentos de entrada: `$ARGUMENTS`\n\nReglas:\n1) Si no hay argumentos, inicia wizard y pregunta solo por el primer campo faltante (`alias`). No llames herramientas todavia.\n2) Si hay argumentos, parsealos como pares `key=value` separados por espacios.\n3) Mantiene y completa el wizard en este orden, preguntando de a un dato por mensaje:\n   - `alias`\n   - `host`\n   - `port` (default `22`)\n   - `user`\n   - `auth` (`key` o `password`)\n   - si `auth=key`: `privateKeyPath` (obligatorio) y `passphraseEnvVar` (opcional)\n   - si `auth=password`: `passwordEnvVar` (obligatorio)\n   - `knownHostFingerprint` (opcional)\n   - `test` (`true`/`false`, default `true`)\n   - `use` (`true`/`false`, default `true`)\n4) Mapea las claves:\n   - `alias`, `host`, `port`, `user`\n   - `auth` (`key` o `password`)\n   - `privateKeyPath`, `passphraseEnvVar`, `passwordEnvVar`\n   - `knownHostFingerprint`\n   - `test` (`true`/`false`) -> `testConnection`\n   - `use` (`true`/`false`) -> `useImmediately`\n5) No llames `ssh_new` hasta tener todos los datos obligatorios y una confirmacion final explicita del usuario.\n6) Al tener todos los datos, muestra un resumen corto y pide confirmacion con `confirmo`.\n7) Tras `confirmo`, llama `ssh_new` exactamente una vez con los datos parseados.\n8) Si falta algun campo obligatorio, pide solo ese campo y muestra un ejemplo corto.\n9) Cuando pidas `passwordEnvVar`, incluye SIEMPRE este aviso de seguridad (adaptando el nombre de variable al alias cuando aplique):\n\n   - \"Este plugin espera el nombre de una variable de entorno (`passwordEnvVar`), no el valor directo.\"\n   - \"No compartas la password en texto plano en el chat.\"\n   - Ejemplos para definirla:\n     - PowerShell (sesion actual): `$env:SSH_BOOMMANIA_PASS=\\\"tu_password\\\"`\n     - CMD (sesion actual): `set SSH_BOOMMANIA_PASS=tu_password`\n     - Bash/Zsh: `export SSH_BOOMMANIA_PASS='tu_password'`\n   - \"Si usas OpenCode en GUI, debes reiniciar completamente la app para que tome la nueva variable de entorno.\"\n   - \"Luego responde solo con el nombre de la variable, por ejemplo: `SSH_BOOMMANIA_PASS`.\"\n\nEjemplos de uso:\n- `/ssh-new alias=prod-api host=10.0.0.20 user=ubuntu auth=key privateKeyPath=~/.ssh/id_rsa`\n- `/ssh-new alias=staging-web host=10.0.1.15 user=deploy auth=password passwordEnvVar=SSH_STAGING_PASS test=true use=true`"
+    },
+    "ssh-list": {
+      "description": "Listar servidores SSH registrados",
+      "template": "Muestra servidores registrados usando `ssh_list`.\n\nArgumentos de entrada: `$ARGUMENTS`\n\nReglas:\n1) Si aparece `--check`, llama `ssh_list` con `checkConnection=true`.\n2) En otro caso, llama `ssh_list` con `checkConnection=false`.\n3) Llama la herramienta una sola vez.\n\nEjemplos:\n- `/ssh-list`\n- `/ssh-list --check`"
+    },
+    "ssh-use": {
+      "description": "Seleccionar servidor SSH activo",
+      "template": "Selecciona un servidor activo usando `ssh_use`.\n\nArgumentos de entrada: `$ARGUMENTS`\n\nReglas:\n1) El primer argumento debe ser el alias.\n2) Si tambien aparece `--no-test`, usa `testConnection=false`; en otro caso `true`.\n3) Llama `ssh_use` exactamente una vez.\n4) Si falta alias, explica el formato correcto y da un ejemplo.\n\nEjemplos:\n- `/ssh-use prod-api`\n- `/ssh-use staging-web --no-test`"
+    },
+    "ssh-current": {
+      "description": "Ver servidor SSH activo",
+      "template": "Muestra el servidor activo con la herramienta `ssh_current`.\n\nLlama `ssh_current` exactamente una vez."
+    },
+    "ssh-run": {
+      "description": "Ejecutar comando en servidor SSH activo",
+      "template": "Ejecuta un comando remoto usando `ssh_exec`.\n\nArgumentos de entrada: `$ARGUMENTS`\n\nReglas:\n1) Si no hay argumentos, explica que debe enviarse un comando remoto.\n2) Si hay argumentos, usa todo `$ARGUMENTS` como valor de `command`.\n3) Llama `ssh_exec` exactamente una vez.\n\nEjemplos:\n- `/ssh-run uname -a`\n- `/ssh-run systemctl status nginx`"
+    }
+  }
+}
