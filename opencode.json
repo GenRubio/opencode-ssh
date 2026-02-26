@@ -32,6 +32,10 @@
     "ssh-shell-exit": {
       "description": "Close the interactive shell session",
       "template": "Close the interactive shell session using `ssh_shell_exit`.\n\nInput arguments: `$ARGUMENTS`\n\nRules:\n1) If there are arguments, take the first token as `alias`.\n2) If there are no arguments, call without `alias`.\n3) Call `ssh_shell_exit` exactly once.\n\nExamples:\n- `/ssh-shell-exit`\n- `/ssh-shell-exit bm-old`"
+    },
+    "ssh-unuse": {
+      "description": "Deselect the active SSH server (no server will be active)",
+      "template": "Deselect the active SSH server using `ssh_unuse`.\n\nInput arguments: `$ARGUMENTS`\n\nRules:\n1) Call `ssh_unuse` exactly once with no arguments.\n2) After the call, inform the user that no SSH server is active and that they must run `/ssh-use <alias>` to select one before any remote command can be executed.\n\nExamples:\n- `/ssh-unuse`"
     }
   }
 }

@@ -273,6 +273,12 @@ export class ServerStore {
     return existing
   }
 
+  async clearActiveAlias(): Promise<void> {
+    const data = await this.getData()
+    data.activeAlias = null
+    await this.saveToDisk(data)
+  }
+
   async setActiveTmuxSession(alias: string, sessionName: string | null): Promise<void> {
     const data = await this.getData()
     const existing = data.servers.find((server) => sameAlias(server.alias, alias))

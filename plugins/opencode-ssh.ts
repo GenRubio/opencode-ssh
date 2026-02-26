@@ -844,6 +844,19 @@ export const OpenCodeSSHPlugin: Plugin = async ({ client }) => {
         },
       }),
 
+      ssh_unuse: tool({
+        description: "Deselects the active SSH server so no server is active. Use this to prevent accidental remote access until a server is explicitly selected again with ssh_use.",
+        args: {},
+        async execute() {
+          const active = await store.getActiveAlias()
+          if (!active) {
+            return "No active server was set. Nothing changed."
+          }
+          await store.clearActiveAlias()
+          return `Server '${active}' deselected. No active SSH server is set. Use ssh_use to select one before running remote commands.`
+        },
+      }),
+
       ssh_copy_id: tool({
         description: "Copies your public SSH key to the server for passwordless authentication. Generates the key if it does not exist.",
         args: {
@@ -955,7 +968,14 @@ export const OpenCodeSSHPlugin: Plugin = async ({ client }) => {
 
     "experimental.chat.system.transform": async (_input, output) => {
       const active = await store.getActiveServer()
-      if (!active) return
+      if (!active) {
+        output.system.push(
+          "No active SSH server is selected. " +
+          "Do NOT call ssh_exec, ssh_shell, ssh_console_open, ssh_shell_exit, ssh_console_close, ssh_test, or ssh_copy_id until the user explicitly selects a server with ssh_use. " +
+          "If the user asks to run a remote command, inform them that no server is active and suggest running /ssh-use <alias> or /ssh-list to see available servers."
+        )
+        return
+      }
 
       const lines = [
         "There is an active SSH server in this project.",
