@@ -193,10 +193,28 @@ function resolveKeyPath(server: ServerProfile): string | undefined {
   return raw
 }
 
+function buildTmuxFreshAttachCommand(sessionName: string): string {
+  return `'tmux kill-session -t ${sessionName} 2>/dev/null || true; tmux new-session -s ${sessionName}'`
+}
+
+function buildManualAttachCommand(server: ServerProfile, sessionName: string): string {
+  const sshBase = `ssh -t -p ${server.port}`
+  const target = `${server.user}@${server.host}`
+  const tmuxCmd = buildTmuxFreshAttachCommand(sessionName)
+
+  if (server.auth.type === "key") {
+    const keyPath = resolveKeyPath(server)
+    const keyFlag = keyPath ? ` -i "${keyPath}"` : ""
+    return `${sshBase}${keyFlag} ${target} ${tmuxCmd}`
+  }
+
+  return `${sshBase} ${target} ${tmuxCmd}`
+}
+
 function buildAttachCommand(server: ServerProfile, sessionName: string): string {
   const sshBase = `ssh -t -p ${server.port}`
   const target = `${server.user}@${server.host}`
-  const tmuxCmd = `'tmux new-session -A -s ${sessionName}'`
+  const tmuxCmd = buildTmuxFreshAttachCommand(sessionName)
 
   if (server.auth.type === "key") {
     const keyPath = resolveKeyPath(server)
@@ -342,14 +360,6 @@ async function openDetachedTerminal(opts: TerminalLaunchOptions): Promise<void> 
 }
 
 export const OpenCodeSSHPlugin: Plugin = async ({ client }) => {
-  await client.app.log({
-    body: {
-      service: "opencode-ssh",
-      level: "info",
-      message: "SSH plugin loaded",
-    },
-  })
-
   return {
     tool: {
       ssh_new: tool({
@@ -503,7 +513,7 @@ export const OpenCodeSSHPlugin: Plugin = async ({ client }) => {
           const sessionName = normalizeTmuxSessionName(args.sessionName)
           const command = buildAttachCommand(target, sessionName)
           // Manual command without sshpass (to show to the user)
-          const manualCommand = `ssh -t -p ${target.port} ${target.user}@${target.host} 'tmux new-session -A -s ${sessionName}'`
+          const manualCommand = buildManualAttachCommand(target, sessionName)
 
           // Resolve password to inject into the new terminal
           // (the new terminal does not inherit env vars from the OpenCode process)
@@ -530,6 +540,7 @@ export const OpenCodeSSHPlugin: Plugin = async ({ client }) => {
           return [
             `Terminal opened for ${target.alias} (${serverRef(target)}).`,
             `Tmux session: ${sessionName}`,
+            "Session reset: previous tmux history was cleared.",
             "Commands run by OpenCode will also appear in this console.",
             "If the window does not open automatically, paste this command in your local terminal:",
             manualCommand,
@@ -933,25 +944,27 @@ export const OpenCodeSSHPlugin: Plugin = async ({ client }) => {
     "tool.execute.after": async (input, output) => {
       if (input.tool !== "ssh_exec" && input.tool !== "ssh_shell" && input.tool !== "ssh_console_open") return
 
+      const outputText = typeof output.output === "string" ? output.output : String(output.output ?? "")
+
       if (input.tool === "ssh_console_open") {
         output.title = "SSH Console"
         output.metadata = {
           ...(output.metadata || {}),
           mode: "console-open",
           output:
-            output.output.length > MAX_METADATA_LENGTH
-              ? `${output.output.slice(0, MAX_METADATA_LENGTH)}\n\n...`
-              : output.output,
+            outputText.length > MAX_METADATA_LENGTH
+              ? `${outputText.slice(0, MAX_METADATA_LENGTH)}\n\n...`
+              : outputText,
         }
         return
       }
 
-      const args = input.args as { command?: string }
-      const command = args.command ?? "ssh command"
+      const hookArgs = (input as { args?: { command?: string } }).args
+      const command = hookArgs?.command ?? "ssh command"
       const exit =
         input.tool === "ssh_exec"
-          ? parseExitCodeFromOutput(output.output)
-          : parseExitCodeFromShellOutput(output.output)
+          ? parseExitCodeFromOutput(outputText)
+          : parseExitCodeFromShellOutput(outputText)
 
       output.title = input.tool === "ssh_exec" ? `SSH Exec - ${command}` : `SSH Shell - ${command}`
       output.metadata = {
@@ -960,9 +973,9 @@ export const OpenCodeSSHPlugin: Plugin = async ({ client }) => {
         mode: input.tool === "ssh_exec" ? "exec" : "shell",
         exit: exit ?? undefined,
         output:
-          output.output.length > MAX_METADATA_LENGTH
-            ? `${output.output.slice(0, MAX_METADATA_LENGTH)}\n\n...`
-            : output.output,
+          outputText.length > MAX_METADATA_LENGTH
+            ? `${outputText.slice(0, MAX_METADATA_LENGTH)}\n\n...`
+            : outputText,
       }
     },
 

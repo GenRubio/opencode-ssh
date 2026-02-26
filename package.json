@@ -10,7 +10,7 @@
     "verify:opencode": "node scripts/verify-install.mjs"
   },
   "dependencies": {
-    "@opencode-ai/plugin": "1.2.12",
+    "@opencode-ai/plugin": "1.1.23",
     "ssh2": "^1.16.0"
   },
   "devDependencies": {

@@ -62,7 +62,7 @@ const sourceFiles = [
 ]
 
 const requiredDependencies = {
-  "@opencode-ai/plugin": "1.2.12",
+  "@opencode-ai/plugin": "1.1.23",
   ssh2: "^1.16.0",
 }
 
@@ -96,9 +96,7 @@ async function ensureConfigPackageJson() {
   }
 
   for (const [dep, version] of Object.entries(requiredDependencies)) {
-    if (!pkg.dependencies[dep]) {
-      pkg.dependencies[dep] = version
-    }
+    pkg.dependencies[dep] = version
   }
 
   await mkdir(path.dirname(configPackageJsonPath), { recursive: true })
